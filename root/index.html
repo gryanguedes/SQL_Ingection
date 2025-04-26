@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Produtos</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { text-align: center; }
+    input[type="text"], button { padding: 0.5rem; margin-right: 0.5rem; }
+    label { margin-right: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    th { background: #f2f2f2; }
+    .error { color: red; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Catálogo de Produtos</h1>
+
+  <div>
+    <label for="nameInput">Nome do Produto:</label>
+    <input type="text" id="nameInput" placeholder="Digite parte ou nome completo">
+    <button id="fetchBtn">Buscar Produtos</button>
+  </div>
+
+  <div id="output">
+    <!-- Resultado aparecerá aqui -->
+  </div>
+
+  <script>
+    const apiUrl = 'http://localhost:3000/products';
+    const input = document.getElementById('nameInput');
+    const btn = document.getElementById('fetchBtn');
+    const output = document.getElementById('output');
+
+    btn.addEventListener('click', () => {
+      const name = input.value.trim();
+      if (!name) {
+        renderError('Informe um nome de produto.');
+        return;
+      }
+
+      // Monta a URL para consulta por nome (vulnerável ou segura, depende do backend em execução)
+      const url = `${apiUrl}?name=${encodeURIComponent(name)}`;
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error('Erro na requisição: ' + response.status);
+          return response.json();
+        })
+        .then(data => renderTable(data))
+        .catch(err => renderError(err.message));
+    });
+
+    function renderTable(products) {
+      if (!products.length) {
+        output.innerHTML = '<p>Nenhum produto encontrado para esse nome.</p>';
+        return;
+      }
+
+      let html = '<table>' +
+        '<thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Lançado</th></tr></thead>' +
+        '<tbody>';
+
+      products.forEach(p => {
+        html += `<tr>
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>${p.category}</td>
+          <td>${p.released ? 'Sim' : 'Não'}</td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      output.innerHTML = html;
+    }
+
+    function renderError(message) {
+      output.innerHTML = `<p class="error">${message}</p>`;
+    }
+  </script>
+</body>
+</html>
